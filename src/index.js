@@ -1,49 +1,50 @@
-class LockedError {
+import {LockedError, CancelledError} from './errors';
+import Cancellable from './cancellable';
 
-}
 
-function hang() {
-  return new Promise();
-}
+const CancellableSymbol = Symbol('Cancellable');
+
 
 export default class PromiseLock {
   constructor() {
-    this.instance = null;
+    this[CancellableSymbol] = null;
   }
 
-  on(promise) {
+  on(promiseOrFactory) {
+    if('function' === typeof(promiseOrFactory)) {
+      return this.onFactory(promiseOrFactory);
+    } else {
+      return this.onPromise(promiseOrFactory);
+    }
+  }
+
+  onFactory(promiseFactory) {
+    if(this.isRunning()) {
+      return Promise.reject(new LockedError());
+    }
+    return this.onPromise(promiseFactory());
+  }
+
+  onPromise(promise) {
     if(this.isRunning()) {
       return Promise.reject(new LockedError());
     }
 
-    this.instance = promise;
-
-    return promise.then((data) => {
-      if(this.isRunning()) {
-        this.instance = null;
-        return data;
-      } else {
-        return hang();
-      }
-    }, (error) => {
-      if(this.isRunning()) {
-        this.instance = null;
-        return Promise.reject(error);
-      } else {
-        return hang();
-      }
-    });
+    this[CancellableSymbol] = new Cancellable(Promise.resolve(promise));
+    return this[CancellableSymbol].promise;
   }
 
   isRunning() {
-    return this.instance !== null;
+    return this[CancellableSymbol] !== null;
   }
 
   cancel() {
-    this.instance = null;
+    this[CancellableSymbol].cancel();
+    this[CancellableSymbol] = null;
   }
 }
 
 
-
 PromiseLock.LockedError = LockedError;
+PromiseLock.CancelledError = CancelledError;
+PromiseLock.CanceledError = CancelledError; //support for American English "canceLed"
