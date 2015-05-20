@@ -6,7 +6,7 @@ import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import PromiseLock from '../';
 
-chai.should();
+const should = chai.should();
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
@@ -41,6 +41,11 @@ describe('PromiseLock', () => {
       p0.should.be.rejectedWith(PromiseLock.CancelledError),
       p1.should.be.fulfilled,
     ]).should.notify(done);
+  });
+
+  it('should allow cancel even if no promise is running', () => {
+    const lock = new PromiseLock();
+    should.not.throw(() => lock.cancel());    
   });
 
   it('should not create promise from factory when it is locked', (done) => {

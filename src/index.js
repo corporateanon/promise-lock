@@ -39,8 +39,12 @@ export default class PromiseLock {
   }
 
   cancel() {
-    this[CancellableSymbol].cancel();
-    this[CancellableSymbol] = null;
+    if(this.isRunning()) {
+      this[CancellableSymbol].cancel();
+      this[CancellableSymbol] = null;
+      return true;
+    }
+    return false;
   }
 }
 
