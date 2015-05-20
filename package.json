@@ -1,13 +1,17 @@
 {
-  "name": "no-name",
-  "version": "0.0.0",
+  "name": "promise-lock",
+  "version": "0.0.1",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha lib/test",
     "prepublish": "./node_modules/.bin/babel -d ./lib/ ./src/"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Corporateanon",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/corporateanon/promise-lock.git"
+  },
+  "license": "WTFPL",
   "devDependencies": {
     "babel": "^5.1.11",
     "babel-core": "^5.2.6",
