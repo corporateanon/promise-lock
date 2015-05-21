@@ -9,7 +9,8 @@ export class LockedError extends PromiseLockError {
 }
 
 export class CancelledError extends PromiseLockError {
-  constructor() {
+  constructor({sender=null} = {}) {
     super('CancelledError');
+    this.sender = sender;
   }
 }

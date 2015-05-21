@@ -37,7 +37,10 @@ export default class PromiseLock {
         this[CancellableSymbol] = null;
         return res;
       }, (err) => {
-        this[CancellableSymbol] = null;
+        if(!( err instanceof CancelledError )) {
+          //If the error is not about cancelling
+          this[CancellableSymbol] = null;
+        }
         return Promise.reject(err);
       });
   }

@@ -108,5 +108,122 @@ describe('PromiseLock', () => {
       .should.notify(done);
   });
 
+  it('should be stable against data races', (done) => {
+    const lock = new PromiseLock();
+    const success = sinon.spy();
+    const error = sinon.spy();
+    lock.on(() => sleep(200).then(() => 'one')).then(success, error);
+
+    sleep(5)
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before first cancel');
+        lock.cancel();
+      })
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(false, 'should not be running after first cancel');
+        lock.on(() => sleep(200).then(() => 'two'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before second cancel');
+        lock.cancel();
+      })
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(false, 'should not be running after second cancel');
+        lock.on(() => sleep(200).then(() => 'three'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before third cancel');
+        lock.cancel();
+      })
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(false, 'should not be running after third cancel');
+        lock.on(() => sleep(200).then(() => 'four'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before fourth cancel');
+        lock.cancel();
+      })
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(false, 'should not be running after fourth cancel');
+        lock.on(() => sleep(200).then(() => 'five'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(500))
+      .then(()=>{
+        lock.isRunning().should.equal(false, 'should be not running, because all promises have resolved');
+        success.should.have.been.calledOnce;
+        success.should.have.been.calledWith('five');
+        error.should.have.callCount(4);
+      })
+      .should.notify(done);
+  });
+
+  it('should be stable against data races (syncronous cancel)', (done) => {
+    const lock = new PromiseLock();
+    const success = sinon.spy();
+    const error = sinon.spy();
+    lock.on(() => sleep(200).then(() => 'one')).then(success, error);
+
+    sleep(5)
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before first cancel');
+        lock.cancel();
+        lock.isRunning().should.equal(false, 'should not be running after first cancel');
+        lock.on(() => sleep(200).then(() => 'two'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before second cancel');
+        lock.cancel();
+        lock.isRunning().should.equal(false, 'should not be running after second cancel');
+        lock.on(() => sleep(200).then(() => 'three'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before third cancel');
+        lock.cancel();
+        lock.isRunning().should.equal(false, 'should not be running after third cancel');
+        lock.on(() => sleep(200).then(() => 'four'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(5))
+      .then(() => {
+        lock.isRunning().should.equal(true, 'should be running before fourth cancel');
+        lock.cancel();
+        lock.isRunning().should.equal(false, 'should not be running after fourth cancel');
+        lock.on(() => sleep(200).then(() => 'five'))
+          .then(success, error);
+      })
+
+      .then(()=>sleep(500))
+      .then(()=>{
+        lock.isRunning().should.equal(false, 'should be not running, because all promises have resolved');
+        success.should.have.been.calledOnce;
+        success.should.have.been.calledWith('five');
+        error.should.have.callCount(4);
+      })
+      .should.notify(done);
+  });
+
 
 });

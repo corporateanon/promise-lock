@@ -11,7 +11,7 @@ export default class Cancellable {
     this.promise = new Promise((res, rej)=>{
       this[RejectSymbol] = () => {
         this[CancelledSymbol] = true;
-        rej(new CancelledError());
+        rej(new CancelledError({sender: this}));
       };
       promise.then((data) => {
         if(!this[CancelledSymbol]) {
