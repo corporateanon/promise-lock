@@ -67,4 +67,46 @@ describe('PromiseLock', () => {
     .should.notify(done);
   });
 
+  it('should set `isRunning=false` after promise has resolved', (done) => {
+    const lock = new PromiseLock();
+    const p0 = lock.on(sleep(10));
+
+    lock.isRunning().should.be.true;
+
+    p0.should.be.fulfilled
+      .then(() => {
+        lock.isRunning().should.be.false;
+      })
+      .should.notify(done);
+  });
+
+  it('should set `isRunning=false` after promise has rejected', (done) => {
+    const lock = new PromiseLock();
+    const p0 = lock.on(sleep(10).then(()=>Promise.reject()));
+
+    lock.isRunning().should.be.true;
+
+    p0.should.be.rejected
+      .then(() => {
+        lock.isRunning().should.be.false;
+      })
+      .should.notify(done);
+  });
+
+  it('should set `isRunning=false` after promise has cancelled', (done) => {
+    const lock = new PromiseLock();
+    const p0 = lock.on(sleep(10));
+
+    lock.isRunning().should.be.true;
+
+    lock.cancel();
+
+    p0.should.be.rejected
+      .then(() => {
+        lock.isRunning().should.be.false;
+      })
+      .should.notify(done);
+  });
+
+
 });

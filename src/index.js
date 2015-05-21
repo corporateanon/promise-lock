@@ -31,7 +31,15 @@ export default class PromiseLock {
     }
 
     this[CancellableSymbol] = new Cancellable(Promise.resolve(promise));
-    return this[CancellableSymbol].promise;
+    
+    return this[CancellableSymbol].promise
+      .then((res) => {
+        this[CancellableSymbol] = null;
+        return res;
+      }, (err) => {
+        this[CancellableSymbol] = null;
+        return Promise.reject(err);
+      });
   }
 
   isRunning() {
